@@ -6,7 +6,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True)
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'password', 'confirm_password', 'emblem', 'color']
+        fields = ['id', 'username', 'email', 'phone', 'password', 'confirm_password', 'emblem', 'color']
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -25,8 +25,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'emblem', 'color']
-        
+        fields = ['id', 'username', 'email', 'phone', 'emblem', 'color']
+
 
 class EmailAuthTokenSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -36,7 +36,7 @@ class EmailAuthTokenSerializer(serializers.Serializer):
         email = attrs.get('email').lower()
         password = attrs.get('password')
 
-        print(f"Validating email: {email}, password: {password}")  # Debugging
+        print(f"Validating email: {email}, password: {password}")
 
         if email and password:
             user = authenticate(username=email, password=password)
