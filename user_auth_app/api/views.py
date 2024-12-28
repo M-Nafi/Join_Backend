@@ -21,7 +21,7 @@ class CustomerUserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
-class CurrentUser(generics.RetrieveAPIView):
+class CurrentUser(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CustomUserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -55,7 +55,7 @@ class EmailLoginView(APIView):
             if not user.is_active:
                 return Response({"error": "User account is inactive."}, status=status.HTTP_403_FORBIDDEN)
 
-            # Aktualisiere die letzte Aktivität beim Login
+            # 🟢 Aktualisiere die letzte Aktivität beim Login
             user.last_activity = now()
             user.save(update_fields=['last_activity'])
             print(f"Last activity updated for user: {user.email}")

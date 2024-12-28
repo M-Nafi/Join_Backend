@@ -12,16 +12,16 @@ class ContactSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
 
-        # Sicherstellen, dass der Benutzer selbst in der Liste ist
-        if not Contact.objects.filter(user=user, email=user.email).exists():
-            Contact.objects.create(
-                user=user,
-                name=user.username,
-                email=user.email,
-                emblem=user.emblem,
-                color=user.color,
-                phone=validated_data.get('phone', ""),
-            )
+        # # Sicherstellen, dass der Benutzer selbst in der Liste ist
+        # if not Contact.objects.filter(user=user, email=user.email).exists():
+        #     Contact.objects.create(
+        #         user=user,
+        #         name=user.username,
+        #         email=user.email,
+        #         emblem=user.emblem,
+        #         color=user.color,
+        #         phone=user.phone,
+        #     )
 
         # Zusätzliche Kontakte hinzufügen
         validated_data['user'] = user
@@ -32,7 +32,33 @@ class ContactSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+
+        # Synchronisiere die Benutzerdaten mit `CustomUser`
+        user = self.context['request'].user
+        if 'name' in validated_data:
+            user.username = validated_data['name']
+        if 'email' in validated_data:
+            user.email = validated_data['email']
+        if 'emblem' in validated_data:
+            user.emblem = validated_data['emblem']
+        if 'color' in validated_data:
+            user.color = validated_data['color']
+        if 'phone' in validated_data:
+            user.phone = validated_data['phone']
+        
+        user.save()
+
         return instance
+    
+    def perform_destroy(self, instance):
+        user = instance.user
+        
+        # Lösche zuerst den Kontakt
+        instance.delete()
+
+        # Lösche auch den Benutzer, wenn er der aktuelle Benutzer ist
+        if user == self.request.user:
+            user.delete()
 
 class SubtaskSerializer(serializers.ModelSerializer):
     class Meta:

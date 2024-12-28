@@ -13,16 +13,16 @@ class ContactList(generics.ListCreateAPIView):
         user = self.request.user
         contacts = Contact.objects.filter(user=user)
 
-        # Stelle sicher, dass der Benutzer als Kontakt existiert
-        if not contacts.filter(email=user.email).exists():
-            Contact.objects.create(
-                user=user,
-                name=user.username or "Gast",
-                email=user.email or f"{user.username}@guest.com",
-                emblem=user.emblem or "G",
-                color=user.color or "#cccccc",
-                phone="N/A"
-            )
+        # # Stelle sicher, dass der Benutzer als Kontakt existiert
+        # if not contacts.filter(email=user.email).exists():
+        #     Contact.objects.create(
+        #         user=user,
+        #         name=user.username or "Gast",
+        #         email=user.email or f"{user.username}@guest.com",
+        #         emblem=user.emblem or "G",
+        #         color=user.color or "#cccccc",
+        #         phone=user.phone or "N/A"
+        #     )
 
         return contacts
 
