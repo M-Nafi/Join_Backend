@@ -5,7 +5,6 @@ from .views import CustomerUserList, CustomerUserDetail, CurrentUser, RegisterVi
 urlpatterns = [
     # Benutzerverwaltung
     path('user/', CurrentUser.as_view(), name='currentuser'),
-    # path('user/<int:pk>/', CurrentUserDetail.as_view(), name='currentruser-detail'),
     path('users/', CustomerUserList.as_view(), name='customeruser-list'),
     path('users/<int:pk>/', CustomerUserDetail.as_view(), name='customeruser-detail'),
 

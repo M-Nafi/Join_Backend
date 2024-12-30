@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 def validate_username(value):
-    if not all(c.isalnum() or c in " ._- " for c in value):  # Erlaubte Zeichen prüfen
+    if not all(c.isalnum() or c in " ._- " for c in value):  
         raise ValidationError(
             'Benutzername darf nur Buchstaben, Zahlen, Leerzeichen und @/./+/-/_ enthalten.',
             code='invalid'

@@ -54,13 +54,11 @@ class EmailLoginView(APIView):
 
             if not user.is_active:
                 return Response({"error": "User account is inactive."}, status=status.HTTP_403_FORBIDDEN)
-
-            # 🟢 Aktualisiere die letzte Aktivität beim Login
+         
             user.last_activity = now()
             user.save(update_fields=['last_activity'])
             print(f"Last activity updated for user: {user.email}")
 
-            # Lösche bestehende Tokens und erstelle einen neuen Token
             Token.objects.filter(user=user).delete()
             token = Token.objects.create(user=user)
 
@@ -78,7 +76,6 @@ class GuestLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # Lösche inaktive Gäste vor der Erstellung eines neuen Gastes
         guest_threshold_time = now() - timedelta(minutes=1)
         inactive_guests = CustomUser.objects.filter(
             is_guest=True,
@@ -88,7 +85,6 @@ class GuestLoginView(APIView):
             inactive_guests.delete()
             print("[GuestLoginView] Inaktive Gäste gelöscht.")
 
-        # Erstelle einen neuen Gast
         guest_username = f"guest_{uuid.uuid4().hex[:3]}"
         guest_email = f"{guest_username}@guest.com"
 
@@ -101,7 +97,7 @@ class GuestLoginView(APIView):
             emblem="G",
             color="#cccccc"
         )
-        guest_user.last_activity = now()  # Setze initiale Aktivität
+        guest_user.last_activity = now()  
         guest_user.save()
 
         token, _ = Token.objects.get_or_create(user=guest_user)
@@ -151,7 +147,7 @@ class ValidateTokenView(APIView):
         current_time = now()
         inactivity_duration = (current_time - request.user.last_activity).total_seconds() / 60
 
-        if inactivity_duration > 1:  # Timeout von 1 Minute
+        if inactivity_duration > 1:  
             print(f"[ValidateTokenView] Token abgelaufen für Benutzer: {request.user.email}")
             return Response({"message": "Token expired"}, status=status.HTTP_401_UNAUTHORIZED)
 

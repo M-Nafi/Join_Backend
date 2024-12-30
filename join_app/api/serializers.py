@@ -2,61 +2,56 @@ from rest_framework import serializers
 from ..models import Contact, Task, Subtask, TaskUserDetails
 from user_auth_app.models import CustomUser
 from user_auth_app.api.serializers import CustomUserSerializer
+import re
 
 class ContactSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(required=False)
+
     class Meta:
         model = Contact
         fields = ('id', 'name', 'email', 'phone', 'emblem', 'color')
+        read_only_fields = ('id',)
+
+    def validate_email(self, value):
+        """
+        Stellt sicher, dass die E-Mail eine gültige Struktur und TLD besitzt.
+        """
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, value):
+            raise serializers.ValidationError("Bitte gültige E-Mail-Adresse angeben.")
+        
+        user = self.context['request'].user
+        contact_id = self.instance.id if self.instance else None
+        
+        if Contact.objects.filter(user=user, email=value).exclude(id=contact_id).exists():
+            raise serializers.ValidationError("Diese E-Mail existiert bereits in Ihrer Kontaktliste.")
+        
+        return value
+    
+    def validate_phone(self, value):
+        """
+        Validiert das Format der Telefonnummer.
+        """
+        phone_regex = r'^\+?[0-9\s\-]{6,13}$'
+        if not re.match(phone_regex, value):
+            raise serializers.ValidationError("Die Telefonnummer muss zwischen 6 und 13 Zeichen lang sein und darf nur Ziffern, Leerzeichen, Bindestriche oder ein '+' enthalten.")
+        return value
 
     def create(self, validated_data):
-        user = self.context['request'].user
-
-        # # Sicherstellen, dass der Benutzer selbst in der Liste ist
-        # if not Contact.objects.filter(user=user, email=user.email).exists():
-        #     Contact.objects.create(
-        #         user=user,
-        #         name=user.username,
-        #         email=user.email,
-        #         emblem=user.emblem,
-        #         color=user.color,
-        #         phone=user.phone,
-        #     )
-
-        # Zusätzliche Kontakte hinzufügen
-        validated_data['user'] = user
+        validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        # Normales Update
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
-        # Synchronisiere die Benutzerdaten mit `CustomUser`
-        user = self.context['request'].user
-        if 'name' in validated_data:
-            user.username = validated_data['name']
-        if 'email' in validated_data:
-            user.email = validated_data['email']
-        if 'emblem' in validated_data:
-            user.emblem = validated_data['emblem']
-        if 'color' in validated_data:
-            user.color = validated_data['color']
-        if 'phone' in validated_data:
-            user.phone = validated_data['phone']
         
-        user.save()
-
         return instance
     
     def perform_destroy(self, instance):
         user = instance.user
-        
-        # Lösche zuerst den Kontakt
         instance.delete()
 
-        # Lösche auch den Benutzer, wenn er der aktuelle Benutzer ist
         if user == self.request.user:
             user.delete()
 
