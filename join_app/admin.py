@@ -15,12 +15,16 @@ class TaskAdmin(admin.ModelAdmin):
     inlines = [SubtaskInline]
 
     def display_users(self, obj):
-        # Gibt eine kommagetrennte Liste der Nutzer zurück
+        """
+        Returns a string of comma-separated usernames for the users assigned to the given Task object.
+        """
         return ", ".join([user.username for user in obj.user.all()])
     display_users.short_description = "Users"
 
     def display_subtasks(self, obj):
-        # Gibt eine kommagetrennte Liste der Subtasks zurück
+        """
+        Returns a string of comma-separated subtasktexts for the subtasks associated with the given Task object.
+        """
         return ", ".join([subtask.subtasktext for subtask in obj.subtasks.all()])
     display_subtasks.short_description = "Subtasks"
 

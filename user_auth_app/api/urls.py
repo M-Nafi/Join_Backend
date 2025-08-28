@@ -1,6 +1,6 @@
 from django.urls import path
 from join_app.api.views import ContactList, ContactDetail, TaskList, TaskDetail, SubtaskList, SubtaskDetail
-from .views import CustomerUserList, CustomerUserDetail, CurrentUser, RegisterView, EmailLoginView, GuestLoginView, GuestLogoutView, ActivityPingView, ValidateTokenView
+from .views import CustomerUserList, CustomerUserDetail, CurrentUser, LogoutView, RegisterView, EmailLoginView, GuestLoginView, GuestLogoutView, ActivityPingView, ValidateTokenView
 
 urlpatterns = [
     # Benutzerverwaltung
@@ -11,6 +11,7 @@ urlpatterns = [
     # Registrierung und Login
     path('registration/', RegisterView.as_view(), name='register'),
     path('login/', EmailLoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('guest-login/', GuestLoginView.as_view(), name='guest-login'),
     path('guest-logout/', GuestLogoutView.as_view(), name='guest-logout'),
 

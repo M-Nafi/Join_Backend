@@ -5,13 +5,20 @@ from rest_framework.authtoken.models import Token
 
 class UpdateLastActivityMiddleware:
     def __init__(self, get_response):
+        """
+        Initialize the middleware with a callable ``get_response`` which is used to
+        get the response for the current request.
+        """
         self.get_response = get_response
 
     def __call__(self, request):
+        """
+        Updates the last activity timestamp of the user and removes inactive guest users
+        and the associated tokens of inactive users.
+        """
         response = self.get_response(request)
         current_time = now()
         
-        # **1. Aktualisiere Aktivitätszeit für eingeloggte Benutzer**
         if request.user.is_authenticated:
             if request.user.last_activity:
                 inactivity_duration = (current_time - request.user.last_activity).total_seconds() / 60
@@ -19,18 +26,16 @@ class UpdateLastActivityMiddleware:
                     request.user.last_activity = current_time
                     request.user.save(update_fields=['last_activity'])
             else:
-                # Initiale Aktivität setzen, falls sie noch nicht gesetzt wurde
                 request.user.last_activity = current_time
                 request.user.save(update_fields=['last_activity'])
         
-        # **2. Schutz für neue Gäste (Grace Period: 1 Minuten)**
         grace_period_time = now() - timedelta(minutes=1)
         guest_threshold_time = now() - timedelta(minutes=1)
         
         inactive_guests = CustomUser.objects.filter(
             is_guest=True,
             last_activity__lt=guest_threshold_time,
-            date_joined__lt=grace_period_time  # Gäste, die älter als 1 Minuten sind
+            date_joined__lt=grace_period_time
         )
         
         if inactive_guests.exists():
@@ -43,7 +48,6 @@ class UpdateLastActivityMiddleware:
                     print(f"[Middleware] Fehler beim Löschen von Gast-Benutzer {guest.email}: {e}")
             print("[Middleware] Inaktive Gäste erfolgreich gelöscht.")
         
-        # 🔑 **3. Lösche Token für inaktive Benutzer**
         user_threshold_time = now() - timedelta(minutes=1)
         inactive_users = CustomUser.objects.filter(
             is_guest=False,
