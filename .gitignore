@@ -1,3 +1,15 @@
 
 /env
 .env
+
+# Added by cleanup
+.DS_Store
+desktop.ini
+__pycache__/
+*.pyc
+venv/
+.venv/
+db.sqlite3
+dump.rdb
+.angular/
+node_modules/
